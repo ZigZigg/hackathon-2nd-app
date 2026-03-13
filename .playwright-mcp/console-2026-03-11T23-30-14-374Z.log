@@ -1,0 +1,42 @@
+[     222ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[     222ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[     223ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[     249ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[     251ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[    1241ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[    3267ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[    7283ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   22688ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[   22692ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[   22692ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   22711ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[   22712ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[   23710ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   25732ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   29752ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   82365ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[   82367ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[   82407ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   82435ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/auth/session:0
+[   82436ms] [ERROR] ClientFetchError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Read more at https://errors.authjs.dev#autherror
+    at fetchData (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10289:22)
+    at async getSession (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10456:21)
+    at async SessionProvider.useEffect [as _getSession] (http://localhost:3000/_next/static/chunks/node_modules__pnpm_39d16060._.js:10599:51) @ http://localhost:3000/_next/static/chunks/43ed9_next_dist_c14397c6._.js:3127
+[   83449ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   85473ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0
+[   89498ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/trpc/leave.getBalance?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D:0

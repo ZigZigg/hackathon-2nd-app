@@ -1,0 +1,2 @@
+[  174201ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=zEORuyfMz7lo_TOCUDzrj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/e07ef_next_dist_client_ffb3a818._.js:10878
+[  175203ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=zEORuyfMz7lo_TOCUDzrj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/e07ef_next_dist_client_ffb3a818._.js:10878

@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [{ "type": "command", "command": ".claude/hooks/tdd-guard.sh", "args": ["{{ tool_input.path }}"] }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pre-bash-guard.sh", "args": ["{{ tool_input.command }}"] }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/post-write.sh", "args": ["{{ tool_input.path }}"] },
+          { "type": "command", "command": ".claude/hooks/post-edit-test.sh", "args": ["{{ tool_input.path }}"] }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/on-commit-check.sh", "args": ["{{ tool_input.command }}"] }
+        ]
+      }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": ".claude/hooks/on-stop-notify.sh", "args": ["{{ result.summary }}"] }] }
+    ]
+  }
+}
