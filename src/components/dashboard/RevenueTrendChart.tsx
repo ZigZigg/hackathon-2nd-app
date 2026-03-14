@@ -22,6 +22,8 @@ interface RevenueTrendChartProps {
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+const currencyFormatter = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
+
 export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
   const hasData = data.some((d) => d.total > 0)
 
@@ -35,25 +37,22 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
       <CardHeader>
         <CardTitle className="text-base font-semibold">Revenue Trend (12 months)</CardTitle>
       </CardHeader>
-      <CardContent className="relative h-64">
-        {!hasData && (
-          <div className="absolute inset-0 flex items-center justify-center">
+      <CardContent className="h-64">
+        {!hasData ? (
+          <div className="flex h-full items-center justify-center">
             <p className="text-sm text-muted-foreground">No data for this period</p>
           </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(value: number) => currencyFormatter.format(value)} />
+              <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         )}
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
-              }
-            />
-            <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
       </CardContent>
     </Card>
   )
