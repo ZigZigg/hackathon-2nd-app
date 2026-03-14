@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createTRPCRouter, protectedProcedure, publicProcedure, type Context } from "@/server/trpc"
 import { TRPCError } from "@trpc/server"
+import { db } from "@/server/db"
 
 // Mock db before importing auth router
 vi.mock("@/server/db", () => ({
@@ -43,7 +44,7 @@ describe("tRPC middleware", () => {
   })
 
   describe("adminProcedure", () => {
-    it("VIEWER throws UNAUTHORIZED", async () => {
+    it("VIEWER throws FORBIDDEN", async () => {
       const { adminProcedure } = await import("@/server/trpc")
       const testRouter = createTRPCRouter({
         test: adminProcedure.query(() => "ok"),
@@ -51,10 +52,10 @@ describe("tRPC middleware", () => {
       const caller = testRouter.createCaller(
         createMockContext({ session: createMockSession("VIEWER") })
       )
-      await expect(caller.test()).rejects.toMatchObject({ code: "UNAUTHORIZED" })
+      await expect(caller.test()).rejects.toMatchObject({ code: "FORBIDDEN" })
     })
 
-    it("MEMBER throws UNAUTHORIZED", async () => {
+    it("MEMBER throws FORBIDDEN", async () => {
       const { adminProcedure } = await import("@/server/trpc")
       const testRouter = createTRPCRouter({
         test: adminProcedure.query(() => "ok"),
@@ -62,7 +63,7 @@ describe("tRPC middleware", () => {
       const caller = testRouter.createCaller(
         createMockContext({ session: createMockSession("MEMBER") })
       )
-      await expect(caller.test()).rejects.toMatchObject({ code: "UNAUTHORIZED" })
+      await expect(caller.test()).rejects.toMatchObject({ code: "FORBIDDEN" })
     })
 
     it("ADMIN proceeds", async () => {
@@ -78,7 +79,7 @@ describe("tRPC middleware", () => {
   })
 
   describe("memberProcedure", () => {
-    it("VIEWER throws UNAUTHORIZED", async () => {
+    it("VIEWER throws FORBIDDEN", async () => {
       const { memberProcedure } = await import("@/server/trpc")
       const testRouter = createTRPCRouter({
         test: memberProcedure.query(() => "ok"),
@@ -86,7 +87,7 @@ describe("tRPC middleware", () => {
       const caller = testRouter.createCaller(
         createMockContext({ session: createMockSession("VIEWER") })
       )
-      await expect(caller.test()).rejects.toMatchObject({ code: "UNAUTHORIZED" })
+      await expect(caller.test()).rejects.toMatchObject({ code: "FORBIDDEN" })
     })
 
     it("MEMBER proceeds", async () => {
@@ -172,7 +173,7 @@ describe("auth router", () => {
           currentPassword: "currentpassword",
           newPassword: "short",
         })
-      ).rejects.toThrow()
+      ).rejects.toMatchObject({ code: "BAD_REQUEST" })
     })
 
     it("succeeds with valid input", async () => {
@@ -200,6 +201,23 @@ describe("auth router", () => {
       })
       expect(result).toEqual({ success: true })
       expect(mockDb.user.update).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe("updateProfile", () => {
+    it("updateProfile: updates name and does not return hashedPassword", async () => {
+      const mockUser = { id: "user-1", name: "New Name", email: "test@test.com", role: "MEMBER" }
+      vi.mocked(db.user.update).mockResolvedValue(mockUser as never)
+
+      const { authRouter } = await import("@/server/routers/auth.router")
+      const caller = authRouter.createCaller(createMockContext({ session: createMockSession("MEMBER") as never }))
+      const result = await caller.updateProfile({ name: "New Name" })
+
+      expect(result).toEqual(mockUser)
+      expect(result).not.toHaveProperty("hashedPassword")
+      expect(db.user.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: "user-1" },
+      }))
     })
   })
 })

@@ -17,6 +17,7 @@ interface ProfileFormProps {
 
 export function ProfileForm({ initialName, email }: ProfileFormProps) {
   const [profileSuccess, setProfileSuccess] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
 
@@ -31,8 +32,12 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
 
   const updateProfile = api.auth.updateProfile.useMutation({
     onSuccess: () => {
+      setProfileError(null)
       setProfileSuccess(true)
       setTimeout(() => setProfileSuccess(false), 3000)
+    },
+    onError: (err) => {
+      setProfileError(err.message)
     },
   })
 
@@ -84,6 +89,9 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
               </p>
             )}
           </div>
+          {profileError && (
+            <p className="rounded bg-red-50 p-2 text-sm text-red-600">{profileError}</p>
+          )}
           {profileSuccess && (
             <p className="rounded bg-green-50 p-2 text-sm text-green-700">
               Profile updated successfully

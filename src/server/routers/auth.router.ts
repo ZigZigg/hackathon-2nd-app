@@ -15,6 +15,7 @@ export const authRouter = createTRPCRouter({
       const user = await db.user.update({
         where: { id: ctx.session.user.id },
         data: { name: input.name },
+        select: { id: true, name: true, email: true, role: true },
       })
       return user
     }),

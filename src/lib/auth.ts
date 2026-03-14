@@ -3,12 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { db } from "@/server/db"
 import bcrypt from "bcryptjs"
-import { z } from "zod"
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-})
+import { loginSchema } from "@/lib/validations/auth.schema"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
@@ -40,7 +35,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        // @ts-ignore — role is on our custom user type
         token.role = user.role
       }
       return token
@@ -49,7 +43,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.sub) {
         session.user.id = token.sub
       }
-      // @ts-ignore — role from token
       session.user.role = token.role
       return session
     },

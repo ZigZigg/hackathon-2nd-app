@@ -6,11 +6,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { loginSchema } from "@/lib/validations/auth.schema"
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-})
 type LoginInput = z.infer<typeof loginSchema>
 
 export function LoginForm() {
