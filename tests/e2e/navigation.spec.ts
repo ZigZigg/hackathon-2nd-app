@@ -8,7 +8,8 @@ test.describe("Navigation", () => {
 
   test("ADMIN sidebar shows Admin section", async ({ page }) => {
     await expect(page.locator("nav")).toBeVisible()
-    await expect(page.getByText("Admin")).toBeVisible()
+    // Settings link is adminOnly — visible only to ADMIN role
+    await expect(page.getByRole("link", { name: /settings/i })).toBeVisible()
   })
 
   test("sidebar shows Dashboard, Events, and Customers links", async ({ page }) => {
