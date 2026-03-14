@@ -26,5 +26,5 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
-  return next({ ctx: { ...ctx, session: ctx.session } })
+  return next({ ctx: { ...ctx, session: ctx.session as Session } })
 })
