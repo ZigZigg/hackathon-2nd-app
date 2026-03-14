@@ -36,17 +36,12 @@ type EventFormProps = EventFormCreateProps | EventFormEditProps
 
 export function EventForm(props: EventFormProps) {
   const isEdit = props.mode === "edit"
+  const schema = isEdit ? updateEventSchema : createEventSchema
 
-  const createForm = useForm<CreateInput>({
-    resolver: zodResolver(createEventSchema),
-  })
-
-  const editForm = useForm<UpdateInput>({
-    resolver: zodResolver(updateEventSchema),
+  const form = useForm<CreateInput | UpdateInput>({
+    resolver: zodResolver(schema),
     defaultValues: isEdit ? (props as EventFormEditProps).defaultValues : undefined,
   })
-
-  const form = isEdit ? editForm : createForm
 
   function handleSubmit(data: CreateInput | UpdateInput) {
     if (props.mode === "create") {

@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { TRPCError } from "@trpc/server"
+import { Prisma } from "@prisma/client"
 import { createTRPCRouter, protectedProcedure, memberProcedure } from "@/server/trpc"
 import { db } from "@/server/db"
 import {
@@ -120,8 +121,7 @@ export const quotationsRouter = createTRPCRouter({
           return updatedItem
         })
       } catch (err) {
-        const prismaErr = err as { code?: string }
-        if (prismaErr.code === "P2025") {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
           throw new TRPCError({ code: "NOT_FOUND", message: "Quotation item not found" })
         }
         throw err

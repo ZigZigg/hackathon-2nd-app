@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { Prisma } from "@prisma/client"
 import { type Context } from "@/server/trpc"
 
 // Mock db before importing router
@@ -425,7 +426,7 @@ describe("events router", () => {
         }
       }
       mockDb.event.delete.mockRejectedValueOnce(
-        Object.assign(new Error("Record not found"), { code: "P2025" })
+        new Prisma.PrismaClientKnownRequestError("Record not found", { code: "P2025", clientVersion: "1.0" })
       )
 
       const { eventsRouter } = await import("@/server/routers/events.router")

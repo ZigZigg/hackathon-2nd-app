@@ -33,6 +33,11 @@ import {
 } from "@/lib/constants/event"
 import { CalendarDays, List, ChevronLeft, ChevronRight } from "lucide-react"
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+]
+
 type CreateInput = z.infer<typeof createEventSchema>
 
 export default function EventsPage() {
@@ -79,11 +84,6 @@ export default function EventsPage() {
   }
 
   const totalPages = data ? Math.ceil(data.totalCount / data.pageSize) : 1
-
-  const MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ]
 
   function prevMonth() {
     if (calMonth === 0) {

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { Prisma } from "@prisma/client"
 import { type Context } from "@/server/trpc"
 
 // Mock db before importing router
@@ -186,6 +187,87 @@ describe("quotations router", () => {
           unitPrice: 100,
         })
       ).rejects.toMatchObject({ code: "FORBIDDEN" })
+    })
+  })
+
+  describe("updateItem", () => {
+    it("updates quantity and unitPrice, recalculates totalPrice and updates Quotation.totalAmount", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        $transaction: ReturnType<typeof vi.fn>
+      }
+
+      const existingItem = {
+        id: "item-1",
+        quotationId: "q-1",
+        description: "Photography Service",
+        quantity: 1,
+        unitPrice: 5000,
+        totalPrice: 5000,
+      }
+      const updatedItem = {
+        ...existingItem,
+        quantity: 3,
+        unitPrice: 4000,
+        totalPrice: 12000,
+      }
+
+      mockDb.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          quotationItem: {
+            findUniqueOrThrow: vi.fn().mockResolvedValueOnce(existingItem),
+            update: vi.fn().mockResolvedValueOnce(updatedItem),
+          },
+          quotation: {
+            update: vi.fn().mockResolvedValueOnce({ ...mockQuotation, totalAmount: 12000 }),
+          },
+        }
+        return fn(tx)
+      })
+
+      const { quotationsRouter } = await import("@/server/routers/quotations.router")
+      const caller = quotationsRouter.createCaller(
+        createMockContext({ session: createMockSession("MEMBER") })
+      )
+      const result = await caller.updateItem({
+        itemId: "item-1",
+        quantity: 3,
+        unitPrice: 4000,
+      })
+
+      expect(result.totalPrice).toBe(12000)
+      expect(result.quantity).toBe(3)
+      expect(result.unitPrice).toBe(4000)
+    })
+
+    it("throws NOT_FOUND when item does not exist", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        $transaction: ReturnType<typeof vi.fn>
+      }
+
+      const notFoundError = new Prisma.PrismaClientKnownRequestError("Record not found", { code: "P2025", clientVersion: "1.0" })
+
+      mockDb.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          quotationItem: {
+            findUniqueOrThrow: vi.fn().mockRejectedValueOnce(notFoundError),
+            update: vi.fn(),
+          },
+          quotation: {
+            update: vi.fn(),
+          },
+        }
+        return fn(tx)
+      })
+
+      const { quotationsRouter } = await import("@/server/routers/quotations.router")
+      const caller = quotationsRouter.createCaller(
+        createMockContext({ session: createMockSession("MEMBER") })
+      )
+      await expect(caller.updateItem({ itemId: "nonexistent" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      })
     })
   })
 

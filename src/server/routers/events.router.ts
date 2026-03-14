@@ -99,8 +99,7 @@ export const eventsRouter = createTRPCRouter({
           data,
         })
       } catch (err) {
-        const prismaErr = err as { code?: string }
-        if (prismaErr.code === "P2025") {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
           throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" })
         }
         throw err
@@ -143,25 +142,37 @@ export const eventsRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const { eventId, userId, role, isCollaborator } = input
 
-      const existing = await db.eventTeamMember.findFirst({
-        where: { eventId, userId },
-      })
-
-      if (existing) {
-        return db.eventTeamMember.update({
-          where: { id: existing.id },
-          data: { role, isCollaborator },
+      try {
+        const existing = await db.eventTeamMember.findFirst({
+          where: { eventId, userId },
         })
-      }
 
-      return db.eventTeamMember.create({
-        data: {
-          eventId,
-          userId,
-          role,
-          isCollaborator,
-        },
-      })
+        if (existing) {
+          return await db.eventTeamMember.update({
+            where: { id: existing.id },
+            data: { role, isCollaborator },
+          })
+        }
+
+        return await db.eventTeamMember.create({
+          data: {
+            eventId,
+            userId,
+            role,
+            isCollaborator,
+          },
+        })
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
+          if (err.code === "P2003") {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" })
+          }
+          if (err.code === "P2025") {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" })
+          }
+        }
+        throw err
+      }
     }),
 
   delete: adminProcedure
@@ -171,8 +182,7 @@ export const eventsRouter = createTRPCRouter({
         await db.event.delete({ where: { id: input.id } })
         return { success: true }
       } catch (err) {
-        const prismaErr = err as { code?: string }
-        if (prismaErr.code === "P2025") {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
           throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" })
         }
         throw err
