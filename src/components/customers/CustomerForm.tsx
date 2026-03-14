@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import type { z } from "zod"
 import { createCustomerSchema, updateCustomerSchema, type CustomerStatusType } from "@/lib/validations/customer.schema"
+import { CUSTOMER_STATUS_LABELS } from "@/lib/constants/customer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,12 +25,6 @@ interface CustomerFormProps {
   defaultValues?: Partial<UpdateInput>
   onSubmit: (data: CreateInput | UpdateInput) => void
   isLoading?: boolean
-}
-
-const STATUS_LABELS: Record<CustomerStatusType, string> = {
-  ACTIVE: "Active",
-  PROSPECT: "Prospect",
-  INACTIVE: "Inactive",
 }
 
 const STATUS_VALUES: CustomerStatusType[] = ["ACTIVE", "PROSPECT", "INACTIVE"]
@@ -115,7 +110,7 @@ export function CustomerForm({ mode, defaultValues, onSubmit, isLoading }: Custo
           <SelectContent>
             {STATUS_VALUES.map((s) => (
               <SelectItem key={s} value={s}>
-                {STATUS_LABELS[s]}
+                {CUSTOMER_STATUS_LABELS[s]}
               </SelectItem>
             ))}
           </SelectContent>

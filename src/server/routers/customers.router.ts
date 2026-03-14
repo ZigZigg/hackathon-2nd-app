@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { TRPCError } from "@trpc/server"
+import { Prisma } from "@prisma/client"
 import { createTRPCRouter, protectedProcedure, memberProcedure, adminProcedure } from "@/server/trpc"
 import { db } from "@/server/db"
 import {
@@ -16,7 +17,7 @@ export const customersRouter = createTRPCRouter({
       const { search, status, assignedStaffId, page, pageSize } = input
       const skip = (page - 1) * pageSize
 
-      const where: Record<string, unknown> = {}
+      const where: Prisma.CustomerWhereInput = {}
 
       if (search) {
         where.OR = [
@@ -30,9 +31,9 @@ export const customersRouter = createTRPCRouter({
         where.status = status
       }
 
-      if (assignedStaffId) {
-        where.assignedStaffId = assignedStaffId
-      }
+      // TODO: assignedStaffId filter is not yet supported — Customer schema does not have an assignedStaffId field.
+      // When added to the schema, implement: where.assignedStaffId = assignedStaffId
+      void assignedStaffId
 
       const [items, totalCount] = await Promise.all([
         db.customer.findMany({
@@ -77,29 +78,53 @@ export const customersRouter = createTRPCRouter({
     .input(updateCustomerSchema)
     .mutation(async ({ input }) => {
       const { id, ...data } = input
-      return db.customer.update({
-        where: { id },
-        data,
-      })
+      try {
+        return await db.customer.update({
+          where: { id },
+          data,
+        })
+      } catch (err) {
+        const prismaErr = err as { code?: string }
+        if (prismaErr.code === "P2025") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Customer not found" })
+        }
+        throw err
+      }
     }),
 
   delete: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      await db.customer.delete({ where: { id: input.id } })
-      return { success: true }
+      try {
+        await db.customer.delete({ where: { id: input.id } })
+        return { success: true }
+      } catch (err) {
+        const prismaErr = err as { code?: string }
+        if (prismaErr.code === "P2025") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Customer not found" })
+        }
+        throw err
+      }
     }),
 
   addInteraction: memberProcedure
     .input(addInteractionSchema)
     .mutation(async ({ input, ctx }) => {
-      return db.customerInteraction.create({
-        data: {
-          customerId: input.customerId,
-          type: input.type,
-          notes: input.notes,
-          staffId: ctx.session.user.id,
-        },
-      })
+      try {
+        return await db.customerInteraction.create({
+          data: {
+            customerId: input.customerId,
+            type: input.type,
+            notes: input.notes,
+            staffId: ctx.session.user.id,
+          },
+        })
+      } catch (err) {
+        const prismaErr = err as { code?: string }
+        if (prismaErr.code === "P2003" || prismaErr.code === "P2025") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Customer not found" })
+        }
+        throw err
+      }
     }),
 })

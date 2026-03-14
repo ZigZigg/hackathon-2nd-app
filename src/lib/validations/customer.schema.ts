@@ -36,5 +36,5 @@ export const listCustomersSchema = z.object({
   status: CustomerStatusEnum.optional(),
   assignedStaffId: z.string().optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(20),
+  pageSize: z.number().int().min(1).max(100).default(20),
 })

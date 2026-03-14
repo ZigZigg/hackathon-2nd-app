@@ -178,6 +178,26 @@ describe("customers router", () => {
         })
       )
     })
+
+    it("throws NOT_FOUND for non-existent id", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        customer: {
+          findUniqueOrThrow: ReturnType<typeof vi.fn>
+        }
+      }
+      mockDb.customer.findUniqueOrThrow.mockRejectedValueOnce(
+        Object.assign(new Error("Record not found"), { code: "P2025" })
+      )
+
+      const { customersRouter } = await import("@/server/routers/customers.router")
+      const caller = customersRouter.createCaller(
+        createMockContext({ session: createMockSession("MEMBER") })
+      )
+      await expect(caller.getById({ id: "nonexistent" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      })
+    })
   })
 
   describe("create", () => {
@@ -243,6 +263,26 @@ describe("customers router", () => {
         })
       )
     })
+
+    it("throws NOT_FOUND when updating non-existent customer", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        customer: {
+          update: ReturnType<typeof vi.fn>
+        }
+      }
+      mockDb.customer.update.mockRejectedValueOnce(
+        Object.assign(new Error("Record not found"), { code: "P2025" })
+      )
+
+      const { customersRouter } = await import("@/server/routers/customers.router")
+      const caller = customersRouter.createCaller(
+        createMockContext({ session: createMockSession("MEMBER") })
+      )
+      await expect(caller.update({ id: "nonexistent", name: "Test" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      })
+    })
   })
 
   describe("delete", () => {
@@ -265,6 +305,26 @@ describe("customers router", () => {
       expect(mockDb.customer.delete).toHaveBeenCalledWith({ where: { id: "cust-1" } })
     })
 
+    it("throws NOT_FOUND when deleting non-existent customer", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        customer: {
+          delete: ReturnType<typeof vi.fn>
+        }
+      }
+      mockDb.customer.delete.mockRejectedValueOnce(
+        Object.assign(new Error("Record not found"), { code: "P2025" })
+      )
+
+      const { customersRouter } = await import("@/server/routers/customers.router")
+      const caller = customersRouter.createCaller(
+        createMockContext({ session: createMockSession("ADMIN") })
+      )
+      await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      })
+    })
+
     it("throws FORBIDDEN for MEMBER", async () => {
       const { customersRouter } = await import("@/server/routers/customers.router")
       const caller = customersRouter.createCaller(
@@ -277,6 +337,26 @@ describe("customers router", () => {
   })
 
   describe("addInteraction", () => {
+    it("throws NOT_FOUND when customer does not exist (FK violation)", async () => {
+      const { db } = await import("@/server/db")
+      const mockDb = db as unknown as {
+        customerInteraction: {
+          create: ReturnType<typeof vi.fn>
+        }
+      }
+      mockDb.customerInteraction.create.mockRejectedValueOnce(
+        Object.assign(new Error("Foreign key constraint failed"), { code: "P2003" })
+      )
+
+      const { customersRouter } = await import("@/server/routers/customers.router")
+      const caller = customersRouter.createCaller(
+        createMockContext({ session: createMockSession("MEMBER") })
+      )
+      await expect(
+        caller.addInteraction({ customerId: "nonexistent", type: "CALL", notes: "Test" })
+      ).rejects.toMatchObject({ code: "NOT_FOUND" })
+    })
+
     it("creates an interaction record linked to the customer", async () => {
       const { db } = await import("@/server/db")
       const mockDb = db as unknown as {

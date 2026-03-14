@@ -24,16 +24,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { CustomerForm } from "@/components/customers/CustomerForm"
+import { CUSTOMER_STATUS_LABELS } from "@/lib/constants/customer"
 import type { z } from "zod"
 import type { createCustomerSchema } from "@/lib/validations/customer.schema"
 
 type CreateInput = z.infer<typeof createCustomerSchema>
-
-const STATUS_LABELS: Record<CustomerStatusType, string> = {
-  ACTIVE: "Active",
-  PROSPECT: "Prospect",
-  INACTIVE: "Inactive",
-}
 
 const STATUS_VARIANTS: Record<CustomerStatusType, "success" | "warning" | "secondary"> = {
   ACTIVE: "success",
@@ -168,7 +163,7 @@ export default function CustomersPage() {
                         <td className="px-4 py-3 text-muted-foreground">{customer.company ?? "—"}</td>
                         <td className="px-4 py-3">
                           <Badge variant={STATUS_VARIANTS[customer.status]}>
-                            {STATUS_LABELS[customer.status]}
+                            {CUSTOMER_STATUS_LABELS[customer.status]}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
