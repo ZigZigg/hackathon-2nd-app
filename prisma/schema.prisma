@@ -7,3 +7,399 @@ datasource db {
   provider   = "postgresql"
   extensions = [pgvector(map: "vector")]
 }
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  PROSPECT
+  INACTIVE
+}
+
+enum InteractionType {
+  CALL
+  MEETING
+  MESSAGE
+  OTHER
+}
+
+enum EventStatus {
+  PLANNING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EventType {
+  WEDDING
+  CORPORATE
+  BIRTHDAY
+  OTHER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TimesheetStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum CollaboratorStatus {
+  AVAILABLE
+  BUSY
+  INACTIVE
+}
+
+enum ContractType {
+  FULLTIME
+  PARTTIME
+  FREELANCE
+}
+
+enum ChecklistType {
+  PRE_EVENT
+  POST_EVENT
+}
+
+enum ZaloMessageDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum ZaloDeliveryStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+// ─── NextAuth v5 Models ───────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  role           Role      @default(MEMBER)
+  hashedPassword String?
+  emailVerified  DateTime?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── CRM Models ───────────────────────────────────────────────────────────────
+
+model Customer {
+  id           String                @id @default(cuid())
+  name         String
+  phone        String
+  email        String?
+  company      String?
+  address      String?
+  status       CustomerStatus        @default(PROSPECT)
+  zaloUserId   String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  interactions CustomerInteraction[]
+  events       Event[]
+  zaloMessages ZaloMessage[]
+}
+
+model CustomerInteraction {
+  id         String          @id @default(cuid())
+  customerId String
+  type       InteractionType
+  notes      String
+  staffId    String?
+  createdAt  DateTime        @default(now())
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Event Models ─────────────────────────────────────────────────────────────
+
+model Event {
+  id              String            @id @default(cuid())
+  name            String
+  date            DateTime
+  venue           String?
+  type            EventType
+  status          EventStatus       @default(PLANNING)
+  budget          Float?
+  customerId      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  teamMembers     EventTeamMember[]
+  quotations      Quotation[]
+  tasks           Task[]
+  transactions    Transaction[]
+  propAllocations PropAllocation[]
+  checklists      Checklist[]
+}
+
+model EventTeamMember {
+  id             String  @id @default(cuid())
+  eventId        String
+  userId         String?
+  collaboratorId String?
+  role           String
+  isCollaborator Boolean @default(false)
+  event          Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model Quotation {
+  id          String          @id @default(cuid())
+  eventId     String
+  status      String          @default("DRAFT")
+  totalAmount Float           @default(0)
+  driveFileId String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  event       Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  items       QuotationItem[]
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  description String
+  quantity    Float
+  unitPrice   Float
+  totalPrice  Float
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Task Model ───────────────────────────────────────────────────────────────
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  assigneeId  String?
+  eventId     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  event       Event?       @relation(fields: [eventId], references: [id])
+}
+
+// ─── Timesheet Models ─────────────────────────────────────────────────────────
+
+model ShiftAssignment {
+  id         String   @id @default(cuid())
+  employeeId String
+  date       DateTime
+  startTime  String
+  endTime    String
+  createdBy  String
+  createdAt  DateTime @default(now())
+}
+
+model Timesheet {
+  id              String          @id @default(cuid())
+  userId          String
+  date            DateTime
+  hoursWorked     Float
+  activities      String
+  notes           String?
+  status          TimesheetStatus @default(PENDING)
+  rejectionReason String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime        @default(now())
+
+  @@unique([userId, date])
+}
+
+// ─── Cash Flow Models ─────────────────────────────────────────────────────────
+
+model TransactionCategory {
+  id           String          @id @default(cuid())
+  name         String
+  type         TransactionType
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String              @id @default(cuid())
+  amount      Float
+  type        TransactionType
+  description String
+  date        DateTime
+  categoryId  String
+  eventId     String?
+  createdBy   String
+  createdAt   DateTime            @default(now())
+  category    TransactionCategory @relation(fields: [categoryId], references: [id])
+  event       Event?              @relation(fields: [eventId], references: [id])
+}
+
+// ─── HR Models ────────────────────────────────────────────────────────────────
+
+model Employee {
+  id         String     @id @default(cuid())
+  name       String
+  role       String
+  department String?
+  phone      String?
+  email      String?
+  hireDate   DateTime?
+  salary     Float?
+  isActive   Boolean    @default(true)
+  userId     String?    @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  contracts  Contract[]
+}
+
+model Collaborator {
+  id        String             @id @default(cuid())
+  name      String
+  specialty String?
+  phone     String?
+  email     String?
+  status    CollaboratorStatus @default(AVAILABLE)
+  createdAt DateTime           @default(now())
+}
+
+model Contract {
+  id         String       @id @default(cuid())
+  employeeId String
+  startDate  DateTime
+  endDate    DateTime
+  type       ContractType
+  notes      String?
+  createdAt  DateTime     @default(now())
+  employee   Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ─── Inventory Models ─────────────────────────────────────────────────────────
+
+model Prop {
+  id                String           @id @default(cuid())
+  name              String
+  category          String
+  totalQuantity     Int
+  availableQuantity Int
+  condition         String?
+  storageLocation   String?
+  photoUrl          String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  allocations       PropAllocation[]
+}
+
+model PropAllocation {
+  id         String    @id @default(cuid())
+  propId     String
+  eventId    String
+  quantity   Int
+  returnedAt DateTime?
+  createdAt  DateTime  @default(now())
+  prop       Prop      @relation(fields: [propId], references: [id])
+  event      Event     @relation(fields: [eventId], references: [id])
+}
+
+model Checklist {
+  id        String          @id @default(cuid())
+  eventId   String
+  type      ChecklistType
+  title     String
+  createdAt DateTime        @default(now())
+  items     ChecklistItem[]
+  event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model ChecklistItem {
+  id              String    @id @default(cuid())
+  checklistId     String
+  label           String
+  isChecked       Boolean   @default(false)
+  checkedByUserId String?
+  checkedAt       DateTime?
+  checklist       Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+// ─── Zalo + Report Models ─────────────────────────────────────────────────────
+
+model ZaloMessage {
+  id            String               @id @default(cuid())
+  customerId    String
+  direction     ZaloMessageDirection
+  content       String
+  status        ZaloDeliveryStatus   @default(QUEUED)
+  senderUserId  String?
+  zaloMessageId String?
+  createdAt     DateTime             @default(now())
+  customer      Customer             @relation(fields: [customerId], references: [id])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  month       Int
+  year        Int
+  generatedBy String
+  createdAt   DateTime @default(now())
+}
