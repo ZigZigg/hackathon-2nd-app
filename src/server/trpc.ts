@@ -2,6 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server"
 import { type Session } from "next-auth"
 import superjson from "superjson"
 import { ZodError } from "zod"
+import { Role } from "@prisma/client"
 
 export interface Context {
   session: Session | null
@@ -27,4 +28,18 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
   return next({ ctx: { ...ctx, session: ctx.session as Session } })
+})
+
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if ((ctx.session.user as { role: Role }).role !== Role.ADMIN) {
+    throw new TRPCError({ code: "UNAUTHORIZED" })
+  }
+  return next({ ctx })
+})
+
+export const memberProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if ((ctx.session.user as { role: Role }).role === Role.VIEWER) {
+    throw new TRPCError({ code: "UNAUTHORIZED" })
+  }
+  return next({ ctx })
 })
