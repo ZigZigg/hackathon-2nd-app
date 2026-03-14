@@ -1,4 +1,5 @@
 "use client"
+import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface MetricCardProps {
@@ -18,7 +19,15 @@ export function MetricCard({ label, value, trend }: MetricCardProps) {
       <CardContent>
         <p className="text-2xl font-bold">{vndFormatter.format(value)}</p>
         {trend && (
-          <span className={`text-xs ${trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-gray-500"}`}>
+          <span
+            className={cn(
+              "text-xs",
+              trend === "up" && "text-green-600",
+              trend === "down" && "text-red-600",
+              trend === "neutral" && "text-gray-500",
+            )}
+            aria-label={trend === "up" ? "Trending up" : trend === "down" ? "Trending down" : undefined}
+          >
             {trend === "up" ? "↑" : trend === "down" ? "↓" : "—"}
           </span>
         )}

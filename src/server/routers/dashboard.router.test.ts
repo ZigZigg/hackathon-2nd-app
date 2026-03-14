@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import type { Session } from "next-auth"
 
 vi.mock("@/server/db", () => ({
   db: {
@@ -16,7 +17,10 @@ import { db } from "@/server/db"
 
 function createAdminCtx() {
   return {
-    session: { user: { id: "u1", role: "ADMIN", email: "a@a.com", name: "A" }, expires: "2099-01-01" } as never,
+    session: {
+      user: { id: "u1", role: "ADMIN" as const, email: "a@a.com", name: "Admin" },
+      expires: new Date(Date.now() + 86400000).toISOString(),
+    } as Session,
   }
 }
 
@@ -27,16 +31,10 @@ describe("dashboardRouter", () => {
 
   describe("getMetrics", () => {
     it("returns { revenue, costs, profit, period } with correct calculations", async () => {
-      const mockDb = db as unknown as {
-        transaction: {
-          aggregate: ReturnType<typeof vi.fn>
-        }
-      }
-
       // First call = INCOME, second call = EXPENSE
-      mockDb.transaction.aggregate
-        .mockResolvedValueOnce({ _sum: { amount: 5000 } })
-        .mockResolvedValueOnce({ _sum: { amount: 2000 } })
+      vi.mocked(db.transaction.aggregate)
+        .mockResolvedValueOnce({ _sum: { amount: 5000 } } as never)
+        .mockResolvedValueOnce({ _sum: { amount: 2000 } } as never)
 
       const { dashboardRouter } = await import("@/server/routers/dashboard.router")
       const caller = dashboardRouter.createCaller(createAdminCtx())
@@ -49,15 +47,9 @@ describe("dashboardRouter", () => {
     })
 
     it("returns zeros when no data (null sums)", async () => {
-      const mockDb = db as unknown as {
-        transaction: {
-          aggregate: ReturnType<typeof vi.fn>
-        }
-      }
-
-      mockDb.transaction.aggregate
-        .mockResolvedValueOnce({ _sum: { amount: null } })
-        .mockResolvedValueOnce({ _sum: { amount: null } })
+      vi.mocked(db.transaction.aggregate)
+        .mockResolvedValueOnce({ _sum: { amount: null } } as never)
+        .mockResolvedValueOnce({ _sum: { amount: null } } as never)
 
       const { dashboardRouter } = await import("@/server/routers/dashboard.router")
       const caller = dashboardRouter.createCaller(createAdminCtx())
@@ -71,13 +63,7 @@ describe("dashboardRouter", () => {
 
   describe("getRevenueTrend", () => {
     it("returns exactly 12 items when groupBy returns empty array", async () => {
-      const mockDb = db as unknown as {
-        transaction: {
-          groupBy: ReturnType<typeof vi.fn>
-        }
-      }
-
-      mockDb.transaction.groupBy.mockResolvedValueOnce([])
+      vi.mocked(db.transaction.groupBy).mockResolvedValueOnce([] as never)
 
       const { dashboardRouter } = await import("@/server/routers/dashboard.router")
       const caller = dashboardRouter.createCaller(createAdminCtx())
@@ -91,21 +77,35 @@ describe("dashboardRouter", () => {
       })
     })
 
-    it("items are in chronological order", async () => {
-      const mockDb = db as unknown as {
-        transaction: {
-          groupBy: ReturnType<typeof vi.fn>
-        }
-      }
+    it("passes a 12-month date range filter to groupBy", async () => {
+      vi.mocked(db.transaction.groupBy).mockResolvedValueOnce([] as never)
 
+      const { dashboardRouter } = await import("@/server/routers/dashboard.router")
+      const caller = dashboardRouter.createCaller(createAdminCtx())
+      await caller.getRevenueTrend()
+
+      const callArgs = vi.mocked(db.transaction.groupBy).mock.calls[0][0] as {
+        where: { type: string; date: { gte: Date } }
+      }
+      expect(callArgs.where.type).toBe("INCOME")
+      expect(callArgs.where.date?.gte).toBeInstanceOf(Date)
+      // The gte date should be approximately 12 months ago
+      const twelveMonthsAgo = new Date()
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11)
+      twelveMonthsAgo.setDate(1)
+      expect(callArgs.where.date.gte.getFullYear()).toBe(twelveMonthsAgo.getFullYear())
+      expect(callArgs.where.date.gte.getMonth()).toBe(twelveMonthsAgo.getMonth())
+    })
+
+    it("items are in chronological order", async () => {
       const now = new Date()
       const year = now.getFullYear()
 
-      // Return entries for month 1 and month 3 of the current year
-      mockDb.transaction.groupBy.mockResolvedValueOnce([
-        { date: new Date(year, 2, 15), _sum: { amount: 300 } }, // March
-        { date: new Date(year, 0, 10), _sum: { amount: 100 } }, // January
-      ])
+      // Return entries for recent months within the last 12 months
+      vi.mocked(db.transaction.groupBy).mockResolvedValueOnce([
+        { date: new Date(year, now.getMonth(), 15), _sum: { amount: 300 } },
+        { date: new Date(year, now.getMonth() - 1, 10), _sum: { amount: 100 } },
+      ] as never)
 
       const { dashboardRouter } = await import("@/server/routers/dashboard.router")
       const caller = dashboardRouter.createCaller(createAdminCtx())
@@ -126,15 +126,9 @@ describe("dashboardRouter", () => {
 
   describe("getEventBreakdown", () => {
     it("returns array of { type, count }", async () => {
-      const mockDb = db as unknown as {
-        event: {
-          groupBy: ReturnType<typeof vi.fn>
-        }
-      }
-
-      mockDb.event.groupBy.mockResolvedValueOnce([
+      vi.mocked(db.event.groupBy).mockResolvedValueOnce([
         { type: "WEDDING", _count: { type: 3 } },
-      ])
+      ] as never)
 
       const { dashboardRouter } = await import("@/server/routers/dashboard.router")
       const caller = dashboardRouter.createCaller(createAdminCtx())

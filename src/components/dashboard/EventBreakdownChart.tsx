@@ -11,13 +11,7 @@ interface EventBreakdownChartProps {
   data: EventBreakdownItem[]
 }
 
-const COLORS = [
-  "var(--chart-1, #2563eb)",
-  "var(--chart-2, #16a34a)",
-  "var(--chart-3, #d97706)",
-  "var(--chart-4, #dc2626)",
-  "var(--chart-5, #7c3aed)",
-]
+const CHART_COLORS = [1, 2, 3, 4, 5].map((i) => `var(--chart-${i})`)
 
 export function EventBreakdownChart({ data }: EventBreakdownChartProps) {
   const isEmpty = data.length === 0
@@ -55,7 +49,7 @@ export function EventBreakdownChart({ data }: EventBreakdownChartProps) {
                 }
               >
                 {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(value: number) => [`${value} events`, "Count"]} />

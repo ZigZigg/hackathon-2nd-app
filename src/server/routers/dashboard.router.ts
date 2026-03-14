@@ -2,6 +2,16 @@ import { protectedProcedure, createTRPCRouter } from "@/server/trpc"
 import { db } from "@/server/db"
 import { periodSchema } from "@/lib/validations/dashboard.schema"
 
+function buildRevenueTrendWindow(now: Date = new Date()) {
+  const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+  const months: { month: number; year: number; total: number }[] = []
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    months.push({ month: d.getMonth() + 1, year: d.getFullYear(), total: 0 })
+  }
+  return { twelveMonthsAgo, months }
+}
+
 export const dashboardRouter = createTRPCRouter({
   getMetrics: protectedProcedure
     .input(periodSchema)
@@ -27,20 +37,13 @@ export const dashboardRouter = createTRPCRouter({
     }),
 
   getRevenueTrend: protectedProcedure.query(async () => {
-    const now = new Date()
+    const { twelveMonthsAgo, months } = buildRevenueTrendWindow()
     const results = await db.transaction.groupBy({
       by: ["date"],
-      where: { type: "INCOME" },
+      where: { type: "INCOME", date: { gte: twelveMonthsAgo } },
       _sum: { amount: true },
       orderBy: { date: "asc" },
     })
-
-    // Build 12-month window
-    const months: { month: number; year: number; total: number }[] = []
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      months.push({ month: d.getMonth() + 1, year: d.getFullYear(), total: 0 })
-    }
 
     // Aggregate by month+year
     for (const row of results) {
