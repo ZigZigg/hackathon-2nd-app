@@ -97,6 +97,13 @@ enum ZaloDeliveryStatus {
   FAILED
 }
 
+enum QuotationStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
+}
+
 // ─── NextAuth v5 Models ───────────────────────────────────────────────────────
 
 model User {
@@ -129,6 +136,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -163,6 +171,8 @@ model Customer {
   interactions CustomerInteraction[]
   events       Event[]
   zaloMessages ZaloMessage[]
+
+  @@index([status])
 }
 
 model CustomerInteraction {
@@ -173,6 +183,8 @@ model CustomerInteraction {
   staffId    String?
   createdAt  DateTime        @default(now())
   customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
 }
 
 // ─── Event Models ─────────────────────────────────────────────────────────────
@@ -195,6 +207,9 @@ model Event {
   transactions    Transaction[]
   propAllocations PropAllocation[]
   checklists      Checklist[]
+
+  @@index([status])
+  @@index([date])
 }
 
 model EventTeamMember {
@@ -210,7 +225,7 @@ model EventTeamMember {
 model Quotation {
   id          String          @id @default(cuid())
   eventId     String
-  status      String          @default("DRAFT")
+  status      QuotationStatus @default(DRAFT)
   totalAmount Float           @default(0)
   driveFileId String?
   createdAt   DateTime        @default(now())
@@ -243,6 +258,9 @@ model Task {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   event       Event?       @relation(fields: [eventId], references: [id])
+
+  @@index([status])
+  @@index([assigneeId])
 }
 
 // ─── Timesheet Models ─────────────────────────────────────────────────────────
@@ -255,6 +273,9 @@ model ShiftAssignment {
   endTime    String
   createdBy  String
   createdAt  DateTime @default(now())
+
+  @@index([employeeId])
+  @@index([date])
 }
 
 model Timesheet {
@@ -271,6 +292,7 @@ model Timesheet {
   createdAt       DateTime        @default(now())
 
   @@unique([userId, date])
+  @@index([date])
 }
 
 // ─── Cash Flow Models ─────────────────────────────────────────────────────────
@@ -294,6 +316,9 @@ model Transaction {
   createdAt   DateTime            @default(now())
   category    TransactionCategory @relation(fields: [categoryId], references: [id])
   event       Event?              @relation(fields: [eventId], references: [id])
+
+  @@index([date])
+  @@index([type])
 }
 
 // ─── HR Models ────────────────────────────────────────────────────────────────
@@ -333,6 +358,8 @@ model Contract {
   notes      String?
   createdAt  DateTime     @default(now())
   employee   Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
 }
 
 // ─── Inventory Models ─────────────────────────────────────────────────────────
@@ -394,6 +421,8 @@ model ZaloMessage {
   zaloMessageId String?
   createdAt     DateTime             @default(now())
   customer      Customer             @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
 }
 
 model Report {
