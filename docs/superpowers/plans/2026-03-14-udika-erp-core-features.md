@@ -25,6 +25,10 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 | `/gen-tests` | When test coverage for a router drops below 80% |
 | `/fix-bug` | Any unexpected behavior — reproduce first, then fix |
 | `/supabase-postgres-best-practices` | Before writing complex Prisma queries or finalising schema |
+| `/vercel-react-best-practices` | After Phase 14 UI is complete — audit bundle size, Server vs Client Component split, data fetching patterns |
+| `/verification-before-completion` | Before any claim of "done" — run tests, coverage, type-check, build |
+| `/deploy-to-vercel` | Phase 15 only — deploy final build to production |
+| `/finishing-a-development-branch` | Phase 15 — guides merge/PR decision after all phases complete |
 
 ### Agents (dispatch for specialized review or isolated implementation)
 
@@ -66,7 +70,8 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 | 11. Inventory | `/tdd-feature` | `@db-analyst` (allocation atomicity), `@spec-reviewer` |
 | 12. Zalo | `/tdd-feature` + `/add-api-route` | `@security-auditor` (webhook validation) |
 | 13. Reports | `/tdd-feature` + `/add-api-route` | `@db-analyst` (aggregation), `@spec-reviewer` |
-| 14. Layout & E2E | `@ui-designer` | `@ux-reviewer` (a11y + mobile), `@spec-reviewer` → `@quality-reviewer` |
+| 14. Layout & E2E | `@ui-designer` | `@ux-reviewer` (a11y + mobile), `/vercel-react-best-practices`, `/verification-before-completion`, `@spec-reviewer` → `@quality-reviewer` |
+| 15. Deploy & Archive | `/deploy-to-vercel` | `/finishing-a-development-branch`, `/opsx:archive` |
 
 ---
 
@@ -109,7 +114,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **1.6** Install Inngest (`inngest`). Create `src/inngest/client.ts` with the Inngest client using `INNGEST_EVENT_KEY`. Create `src/app/api/inngest/route.ts` as the Inngest serve handler (registers functions — empty array for now). Verify `pnpm dev` still starts cleanly.
 
-- [ ] **1.7** Create `.env.example` documenting all required env vars (see the Environment Variables section at the bottom of this plan). Create `vercel.json` with build settings. Commit: `"chore: base project setup with all dependencies"`.
+- [ ] **1.7** Create `.env.example` documenting all required env vars (see the Environment Variables section at the bottom of this plan). Create `vercel.json` with build settings. Commit: `"chore: base project setup with all dependencies (tasks 1.1–1.7)"`.
 
 **How to test:** `pnpm dev` starts without errors, `pnpm build` succeeds, `pnpm test` passes, `/api/trpc` responds.
 
@@ -148,7 +153,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **2.9** Add `ZaloMessage` model: (id, customerId, direction, content, status, senderUserId, zaloMessageId, createdAt). Add `ZaloMessageDirection` enum: `OUTBOUND`, `INBOUND`. Add `ZaloDeliveryStatus` enum: `QUEUED`, `SENT`, `FAILED`. Add `Report` model: (id, month, year, generatedBy, createdAt) — used by Phase 13 to store report metadata.
 
-- [ ] **2.10** Run `pnpm db:migrate` to apply the full schema. Create `prisma/seed.ts` to insert one ADMIN user (hashed password via bcrypt) plus default transaction categories: "Event Revenue", "Staff Cost", "Equipment Rental", "Utilities", "Marketing". Run `pnpm db:seed`. Run `pnpm db:generate`. Verify all tables exist in Supabase. Commit: `"feat: full prisma schema for all ERP modules"`.
+- [ ] **2.10** Run `pnpm db:migrate` to apply the full schema. Create `prisma/seed.ts` to insert one ADMIN user (hashed password via bcrypt) plus default transaction categories: "Event Revenue", "Staff Cost", "Equipment Rental", "Utilities", "Marketing". Run `pnpm db:seed`. Run `pnpm db:generate`. Verify all tables exist in Supabase. Commit: `"feat: full prisma schema for all ERP modules (tasks 2.1–2.10)"`.
 
 **How to test:** `pnpm db:migrate` succeeds without warnings, `pnpm db:seed` inserts admin and categories, Prisma Studio shows all tables with correct relations.
 
@@ -209,7 +214,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **3.6** Build `src/app/(auth)/login/page.tsx` and `LoginForm.tsx`. The form uses `react-hook-form` with `loginSchema` (email, password). On submit, calls NextAuth `signIn('credentials', { email, password, redirect: false })`. Show inline error on failure ("Invalid email or password"). On success, call `router.push('/dashboard')`.
 
-- [ ] **3.7** Build `src/app/(dashboard)/profile/page.tsx` and `ProfileForm.tsx`. Shows current name and email (read-only). Allows name update (calls `api.auth.updateProfile`) and password change (calls `api.auth.changePassword`). Commit: `"feat: NextAuth v5 auth with RBAC tRPC middleware"`.
+- [ ] **3.7** Build `src/app/(dashboard)/profile/page.tsx` and `ProfileForm.tsx`. Shows current name and email (read-only). Allows name update (calls `api.auth.updateProfile`) and password change (calls `api.auth.changePassword`). Commit: `"feat: NextAuth v5 auth with RBAC tRPC middleware (tasks 3.1–3.6)"`.
 
 **How to test:** Login with seeded admin works, wrong password shows error, `/dashboard` without session redirects to `/login`, all unit tests pass.
 
@@ -268,7 +273,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
   ```
   Returns `{ metrics, trend, breakdown, isLoading }`.
 
-- [ ] **4.5** Build `src/app/(dashboard)/dashboard/page.tsx`. Renders: period picker (month/year selectors at top), MetricCard × 3 (Revenue / Costs / Net Profit), RevenueTrendChart, EventBreakdownChart. Use `Skeleton` components for loading state. Commit: `"feat: dashboard analytics with 30s auto-refresh"`.
+- [ ] **4.5** Build `src/app/(dashboard)/dashboard/page.tsx`. Renders: period picker (month/year selectors at top), MetricCard × 3 (Revenue / Costs / Net Profit), RevenueTrendChart, EventBreakdownChart. Use `Skeleton` components for loading state. Commit: `"feat: dashboard analytics with 30s auto-refresh (tasks 4.1–4.7)"`.
 
 **How to test:** Dashboard loads, cards show zeros with no data, period selector updates all widgets, network tab shows re-fetches every 30s.
 
@@ -312,7 +317,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **5.3** Build `src/app/(dashboard)/customers/page.tsx`: search input (debounced 300ms with `useDebounce` hook), status filter dropdown, assigned-staff filter dropdown (lists users from session-aware query), paginated table (Name, Phone, Company, Status, Created), "Add Customer" button opens dialog with `CustomerForm`.
 
-- [ ] **5.4** Build `src/app/(dashboard)/customers/[id]/page.tsx`: customer info card, `InteractionTimeline` below in reverse chronological order (icon per type, timestamp, notes). "Log Interaction" button opens dialog. Commit: `"feat: customer CRM with interaction history and staff filter"`.
+- [ ] **5.4** Build `src/app/(dashboard)/customers/[id]/page.tsx`: customer info card, `InteractionTimeline` below in reverse chronological order (icon per type, timestamp, notes). "Log Interaction" button opens dialog. Commit: `"feat: customer CRM with interaction history and staff filter (tasks 5.1–5.5)"`.
 
 ---
 
@@ -374,6 +379,8 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **6.4** Create `src/server/services/google-drive.service.ts`. Uses `googleapis` package with service account credentials loaded from `GOOGLE_SERVICE_ACCOUNT_JSON` env var (parse as JSON). Exposes `uploadPDF(buffer: Buffer, filename: string): Promise<{ fileId: string, viewLink: string }>`. This file lives in `src/server/` — it is NEVER imported by client components.
 
+- [ ] **6.4a** Add a `generateQuotationPDF(quotationId: string): Promise<Buffer>` helper inside `src/server/services/google-drive.service.ts` (or a co-located `src/server/services/quotation-pdf.service.ts`). It fetches the `Quotation` with all `QuotationItems` from the database using the Prisma client, then builds a PDF buffer using `pdfkit` with: quotation header (event name, date, customer), line items table (description, qty, unit price, total), grand total row. This buffer is what gets passed to `uploadPDF`. The tRPC quotations router calls `generateQuotationPDF` then `uploadPDF` in sequence and stores the returned `fileId` on `Quotation.driveFileId`.
+
 - [ ] **6.5** Build `src/app/(dashboard)/events/page.tsx`: view toggle (List / Calendar). List: filterable table with Status badge, date, type, customer, budget. Calendar: monthly grid (`EventCalendar` component) showing event names on their dates. Status filter and date range picker shared between both views.
 
 - [ ] **6.6** Build `src/app/(dashboard)/events/[id]/page.tsx` with three sections:
@@ -381,7 +388,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
   2. `TeamAssignment` — current team list (employees + collaborators) with roles; "Assign" opens a dialog to select from employees/collaborators
   3. `QuotationBuilder` — line items table with editable quantity/price, calculated totals, "Export to Drive" button (calls Google Drive service via tRPC mutation, stores `driveFileId`), "Send via Zalo" button (calls `api.zalo.sendMessage` with the Drive view link — Zalo router is available from Phase 12, but wire the button now and guard it with `isZaloReady` flag that can be `false` until Phase 12 is complete)
 
-- [ ] **6.7** Commit: `"feat: event management with quotation builder, Drive export, state machine"`.
+- [ ] **6.7** Commit: `"feat: event management with quotation builder, Drive export, state machine (tasks 6.1–6.8)"`.
 
 ---
 
@@ -427,7 +434,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **7.5** Create `TaskDetailPanel.tsx` as a shadcn Sheet. Full task details, status dropdown, edit mode via `TaskForm`. `TaskForm` fields: title, description, priority, due date, assignee (user select), linked event (event select, optional).
 
-- [ ] **7.6** Build `src/app/(dashboard)/tasks/page.tsx`: `KanbanBoard` with filter bar (assignee select, priority select, event select). "New Task" button opens `TaskDetailPanel` in create mode. Commit: `"feat: kanban task board with drag-and-drop and overdue detection"`.
+- [ ] **7.6** Build `src/app/(dashboard)/tasks/page.tsx`: `KanbanBoard` with filter bar (assignee select, priority select, event select). "New Task" button opens `TaskDetailPanel` in create mode. Commit: `"feat: kanban task board with drag-and-drop and overdue detection (tasks 7.1–7.7)"`.
 
 ---
 
@@ -479,7 +486,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **8.4** Build `src/app/(dashboard)/schedule/page.tsx` (ADMIN-gated via `adminProcedure` data; MEMBERs see read-only view of their own shifts). Build `src/app/(dashboard)/timesheets/page.tsx` for MEMBERs: their own timesheet list with status badges and `TimesheetForm` to submit today's report. `TimesheetForm` uses `submitTimesheetSchema`, date defaults to today and is read-only.
 
-- [ ] **8.5** Build `src/app/(dashboard)/timesheets/review/page.tsx` for ADMINs: date filter and user filter at top, table of all timesheets with employee name, date, hours, status. "Approve" button triggers mutation. "Reject" opens dialog with a required reason textarea. `AttendanceSummary` component: employee select + month picker, fetches `getAttendanceSummary`, displays total days / approved hours / rejection count. Commit: `"feat: work schedule and timesheet approval workflow"`.
+- [ ] **8.5** Build `src/app/(dashboard)/timesheets/review/page.tsx` for ADMINs: date filter and user filter at top, table of all timesheets with employee name, date, hours, status. "Approve" button triggers mutation. "Reject" opens dialog with a required reason textarea. `AttendanceSummary` component: employee select + month picker, fetches `getAttendanceSummary`, displays total days / approved hours / rejection count. Commit: `"feat: work schedule and timesheet approval workflow (tasks 8.1–8.7)"`.
 
 ---
 
@@ -522,7 +529,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **9.3** Build `src/app/(dashboard)/cash-flow/page.tsx`: period picker (month/year) at top, `CashFlowSummary` row (3 cards: Total Income / Total Expenses / Net Balance formatted as VND), `CategoryBreakdownChart` (Recharts `BarChart` with two grouped bars: income categories vs expense categories), transaction list with pagination. "Add Transaction" button opens dialog.
 
-- [ ] **9.4** Build `TransactionForm`: type toggle (Income/Expense), amount input (VND format hint), category select (filtered by selected type so only income categories show for INCOME), description, date picker, optional event link. Commit: `"feat: cash flow with VND formatting, period filter, and category breakdown"`.
+- [ ] **9.4** Build `TransactionForm`: type toggle (Income/Expense), amount input (VND format hint), category select (filtered by selected type so only income categories show for INCOME), description, date picker, optional event link. Commit: `"feat: cash flow with VND formatting, period filter, and category breakdown (tasks 9.1–9.6)"`.
 
 ---
 
@@ -566,7 +573,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **10.4** Build `src/app/(dashboard)/hr/employees/[id]/page.tsx`: employee info card (shows linked system user email if `userId` is set), `ContractList` with start/end dates. Contracts where `endDate` is within 30 days get a yellow ⚠️ warning badge. "Add Contract" button opens dialog.
 
-- [ ] **10.5** Commit: `"feat: HR module with employee, collaborator, contract expiry tracking"`.
+- [ ] **10.5** Commit: `"feat: HR module with employee, collaborator, contract expiry tracking (tasks 10.1–10.7)"`.
 
 ---
 
@@ -614,7 +621,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **11.4** `PropAllocationForm`: event select, quantity input. Below quantity input, show "Available: N" as helper text fetched live. Disable submit and show red helper if entered quantity exceeds available.
 
-- [ ] **11.5** Build `src/app/(dashboard)/inventory/checklists/[eventId]/page.tsx`: tabs for "Pre-Event" and "Post-Event" checklists (filtered by `ChecklistType`). Each tab shows its checklist items as checkboxes. Checking an item calls `updateChecklistItem` mutation. Progress bar at top shows `percentage%` complete. "Add Item" button. Commit: `"feat: prop inventory with atomic allocation and typed checklists"`.
+- [ ] **11.5** Build `src/app/(dashboard)/inventory/checklists/[eventId]/page.tsx`: tabs for "Pre-Event" and "Post-Event" checklists (filtered by `ChecklistType`). Each tab shows its checklist items as checkboxes. Checking an item calls `updateChecklistItem` mutation. Progress bar at top shows `percentage%` complete. "Add Item" button. Commit: `"feat: prop inventory with atomic allocation and typed checklists (tasks 11.1–11.7)"`.
 
 ---
 
@@ -661,11 +668,11 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **12.4** Create `src/app/api/webhooks/zalo/route.ts` as a Next.js route handler supporting BOTH methods:
   - `GET`: Zalo sends a verification challenge — respond with the `verifyToken` query param echoed back (Zalo OA webhook activation handshake)
-  - `POST`: Validate `X-Zalo-Signature` header using HMAC-SHA256 with `ZALO_OA_SECRET` — return `Response(null, { status: 401 })` if invalid. Parse payload for `user_id_by_app`, `message.text`, `message.msg_id`. Upsert customer by `zaloUserId` (add `zaloUserId` field to `Customer` model — run `pnpm db:migrate` and `pnpm db:generate`). Create `INBOUND` `ZaloMessage` record.
+  - `POST`: Validate `X-Zalo-Signature` header using HMAC-SHA256 with `ZALO_OA_SECRET`. Use `crypto.createHmac('sha256', ZALO_OA_SECRET).update(rawBody).digest('hex')` to compute the expected signature. Compare using **`crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(header))`** — never use `===` (prevents timing attacks). Return `Response(null, { status: 401 })` if invalid or if header is missing. Parse payload for `user_id_by_app`, `message.text`, `message.msg_id`. Upsert customer by `zaloUserId` (add `zaloUserId` field to `Customer` model — run `pnpm db:migrate` and `pnpm db:generate`). Create `INBOUND` `ZaloMessage` record.
 
 - [ ] **12.5** Create `src/inngest/functions/send-bulk-zalo.ts`. Triggered by `zalo/bulk.send` event. Receives `{ customerId, message, customerZaloId }`. Calls `ZaloService.sendMessage`. Updates `ZaloMessage.status` to `SENT` or `FAILED`. Set `concurrency: { limit: 5 }` on the Inngest function to cap parallel sends. Add 100ms sleep between individual sends for additional rate-limit safety. Register function in `src/app/api/inngest/route.ts`.
 
-- [ ] **12.6** Add `ZaloMessageForm` (textarea + submit) and `ZaloMessageHistory` (messages list with direction indicator: outbound=right-aligned blue, inbound=left-aligned gray, timestamp, status badge) to `src/app/(dashboard)/customers/[id]/page.tsx`. Now wire the "Send via Zalo" button in `QuotationBuilder` (Phase 6.6) to call `api.zalo.sendMessage` with the Drive view link as the message content. Commit: `"feat: Zalo OA integration with webhook, bulk sending, and rate limiting"`.
+- [ ] **12.6** Add `ZaloMessageForm` (textarea + submit) and `ZaloMessageHistory` (messages list with direction indicator: outbound=right-aligned blue, inbound=left-aligned gray, timestamp, status badge) to `src/app/(dashboard)/customers/[id]/page.tsx`. Now wire the "Send via Zalo" button in `QuotationBuilder` (Phase 6.6) to call `api.zalo.sendMessage` with the Drive view link as the message content. Commit: `"feat: Zalo OA integration with webhook, bulk sending, and rate limiting (tasks 12.1–12.8)"`.
 
 ---
 
@@ -711,7 +718,7 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 
 - [ ] **13.4** Create `src/app/api/reports/excel/route.ts` using the same auth guard pattern. Use `exceljs` to create a `Workbook` with sheets: "Revenue", "Events", "Timesheets", "Expenses". Each sheet has typed column headers and data rows. Return as `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
 
-- [ ] **13.5** Build `src/app/(dashboard)/reports/page.tsx`. Period picker + "Generate Report" button. On generate: calls `api.reports.generateReport` mutation and shows `ReportPreview` below. `ReportPreview` shows summary cards and section breakdowns. Export buttons use a client-side authenticated fetch (NOT `window.open` — instead use `fetch('/api/reports/pdf?month=X&year=Y', { credentials: 'include' })`, receive the blob, create an object URL with `URL.createObjectURL(blob)`, and trigger download with a programmatic `<a>` click). Build `ReportHistory` list at the top of the page showing past reports from `api.reports.listReports`. Commit: `"feat: monthly report generation with authenticated PDF/Excel export"`.
+- [ ] **13.5** Build `src/app/(dashboard)/reports/page.tsx`. Period picker + "Generate Report" button. On generate: calls `api.reports.generateReport` mutation and shows `ReportPreview` below. `ReportPreview` shows summary cards and section breakdowns. Export buttons use a client-side authenticated fetch (NOT `window.open` — instead use `fetch('/api/reports/pdf?month=X&year=Y', { credentials: 'include' })`, receive the blob, create an object URL with `URL.createObjectURL(blob)`, and trigger download with a programmatic `<a>` click). Build `ReportHistory` list at the top of the page showing past reports from `api.reports.listReports`. Commit: `"feat: monthly report generation with authenticated PDF/Excel export (tasks 13.1–13.7)"`.
 
 ---
 
@@ -722,7 +729,9 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 **Skill/Agent:**
 - **`@ui-designer`** — dispatch at the start of phase 14 to design the full sidebar navigation system: item groupings, active state styles, ADMIN section gating, mobile hamburger, and `UserMenu` avatar dropdown. Provide the role prop flow and nav item list.
 - **`@ux-reviewer`** — dispatch after step 14.4 to audit: keyboard navigation through sidebar, focus trapping in mobile Sheet, `ErrorBoundary` copy review, Suspense skeleton fidelity (does skeleton match loaded layout?), WCAG contrast on all nav items
-- **`@spec-reviewer`** — dispatch after step 14.5 (all E2E tests pass) for the final stage-1 review across all specs
+- **`/vercel-react-best-practices`** — invoke after step 14.5 to audit Server vs Client Component boundaries, bundle size, unnecessary `'use client'` directives, data fetching patterns (Server Components vs tRPC hooks), and image optimization
+- **`/verification-before-completion`** — invoke before step 14.6 commit. Requires: `pnpm test:coverage` shows >80% server-side coverage, `pnpm type-check` clean, `pnpm build` succeeds, `pnpm test:e2e` all pass. Do NOT commit or claim "done" until all four pass.
+- **`@spec-reviewer`** — dispatch after step 14.6 for the final stage-1 review across all 11 specs
 - **`@quality-reviewer`** — dispatch after `@spec-reviewer` passes — final stage-2 review covering security (auth redirect, RBAC enforcement end-to-end), performance (bundle size, Lighthouse score), and code quality across the full codebase
 
 **Files:**
@@ -735,6 +744,14 @@ Use this table to pick the right tool before starting each task. **Skills** are 
 - Create: `tests/e2e/auth.spec.ts`
 - Create: `tests/e2e/dashboard.spec.ts`
 - Create: `tests/e2e/customers.spec.ts`
+- Create: `tests/e2e/events.spec.ts`
+- Create: `tests/e2e/tasks.spec.ts`
+- Create: `tests/e2e/timesheets.spec.ts`
+- Create: `tests/e2e/cash-flow.spec.ts`
+- Create: `tests/e2e/hr.spec.ts`
+- Create: `tests/e2e/inventory.spec.ts`
+- Create: `tests/e2e/reports.spec.ts`
+- Create: `tests/e2e/rbac.spec.ts`
 - Create: `tests/e2e/navigation.spec.ts`
 
 **Steps:**
@@ -762,22 +779,114 @@ Use this table to pick the right tool before starting each task. **Skills** are 
   - Login with valid credentials → URL is `/dashboard`
   - Login with invalid credentials → page shows error message, URL stays `/login`
   - Visit `/dashboard` without session → redirected to `/login`
+  - Profile page: update name → new name visible after save
+  - Profile page: change password with wrong current password → inline error shown
 
   `dashboard.spec.ts`:
   - Authenticated user sees dashboard with at least 3 metric cards
+  - Period selector (month/year) updates all three metric cards and both charts
+  - Charts re-fetch every 30s (verify by intercepting network requests and confirming `refetch` fires after 30s)
+  - Empty state: period with no data shows zeros on cards and "No data" overlays on charts
 
   `customers.spec.ts`:
   - Create a customer → appears in list
+  - Search by name → only matching customer visible
+  - Filter by status `ACTIVE` → only active customers shown
   - Open customer detail page → interaction timeline section visible
-  - Log an interaction → appears in timeline
+  - Log an interaction → appears in timeline with correct type icon and timestamp
+  - ADMIN can delete a customer; MEMBER cannot see the delete option (button absent)
+
+  `events.spec.ts`:
+  - Create an event with status `PLANNING` → appears in event list
+  - Switch to Calendar view → event appears on its date cell
+  - Open event detail → status can be changed `PLANNING → CONFIRMED`
+  - Invalid status transition (try to set `COMPLETED → PLANNING`) → error toast shown, status unchanged
+  - Add a team member → member appears in the team list
+  - Add quotation line item → `totalAmount` updates in the UI
+  - Remove quotation line item → `totalAmount` decrements
+
+  `tasks.spec.ts`:
+  - Create a task → appears in the TODO column
+  - Drag task from TODO to IN_PROGRESS column → task moves and status badge updates
+  - Overdue task (dueDate in the past, status not DONE) → red "Overdue" badge visible
+  - Filter by priority `HIGH` → only high-priority tasks visible in all columns
+  - ADMIN can delete a task; MEMBER cannot see the delete option
+
+  `timesheets.spec.ts`:
+  - MEMBER submits a timesheet for today → entry appears in their list with `PENDING` status
+  - Submitting a second timesheet for the same date → error message shown
+  - ADMIN approves a pending timesheet → status badge changes to `APPROVED`
+  - ADMIN rejects a timesheet with reason → status changes to `REJECTED`, reason stored
+  - Rejecting without a reason → submit button disabled / validation error shown
+  - `AttendanceSummary` for an employee shows correct `approvedHours` after approval
+
+  `cash-flow.spec.ts`:
+  - Add an INCOME transaction → appears in list and `Total Income` card increments
+  - Add an EXPENSE transaction → `Total Expenses` card increments, `Net Balance` updates
+  - Amount of `0` or negative → validation error shown, transaction not created
+  - Filter by `categoryId` → only transactions for that category visible
+  - Period picker change → summary cards reflect the selected month/year
+
+  `hr.spec.ts`:
+  - Add an employee → appears in the employee directory
+  - Search by name → only matching employee shown
+  - Deactivate employee → employee moves to inactive list
+  - Add contract to employee → contract appears in `ContractList`
+  - Contract expiring within 30 days → yellow warning badge visible
+  - Add a collaborator → appears in the collaborators tab
+  - Assign collaborator to an event → success toast shown
+
+  `inventory.spec.ts`:
+  - Add a prop with quantity 5 → availability badge shows green
+  - Allocate 3 units to an event → available quantity drops to 2
+  - Attempt to allocate 10 units (exceeds available) → error message shown, quantity unchanged
+  - Open event checklist → pre-event and post-event tabs visible
+  - Check a checklist item → checkbox is checked, progress bar increments
+  - All items checked → progress bar shows 100%
+
+  `reports.spec.ts`:
+  - Generate report for current month → `ReportPreview` renders with summary cards
+  - Generated report appears in `ReportHistory` list
+  - Click "Download PDF" → browser triggers a file download (verify `Content-Disposition: attachment` response)
+  - Click "Download Excel" → browser triggers an Excel file download
+  - Unauthenticated request to `/api/reports/pdf` → 401 response
+
+  `rbac.spec.ts`:
+  - VIEWER cannot access the "Delete" action on customers, events, or tasks
+  - MEMBER can submit timesheets but cannot approve/reject them (approve button absent on review page)
+  - MEMBER cannot access `/timesheets/review` page (redirect or 403)
+  - ADMIN can access all pages including `/timesheets/review`
+  - VIEWER cannot create customers (create button absent or mutation returns UNAUTHORIZED)
 
   `navigation.spec.ts`:
   - ADMIN sees "Admin" nav section
   - VIEWER does not see "Admin" nav section
   - On mobile viewport (375px wide), hamburger button is visible and clicking it opens the mobile sidebar
   - Closing the mobile sidebar hides it
+  - Active route is highlighted in the sidebar when navigating between pages
 
-- [ ] **14.6** Run `pnpm lint`, `pnpm type-check`, `pnpm build` — all clean with zero errors. Run `pnpm test` — all unit tests pass. Run `pnpm test:e2e` — all E2E tests pass. Commit: `"feat: dashboard shell, sidebar nav, RBAC visibility, E2E tests complete"`.
+- [ ] **14.6** Run `/verification-before-completion` checklist: `pnpm lint` clean, `pnpm type-check` clean, `pnpm build` succeeds, `pnpm test` all pass, `pnpm test:coverage` shows >80% server-side, `pnpm test:e2e` all pass. Commit only after all six checks pass: `"feat: dashboard shell, sidebar nav, RBAC visibility, E2E tests complete (tasks 14.1–14.5)"`.
+
+---
+
+### Phase 15: Deploy & Archive
+
+**Goal:** Deploy the completed application to Vercel production and close out the OpenSpec change.
+
+**Skill/Agent:**
+- **`/finishing-a-development-branch`** — invoke first to decide the merge/PR strategy: direct merge to main, or PR with review
+- **`/deploy-to-vercel`** — invoke after merge to trigger a production deployment
+- **`/opsx:archive`** — invoke last to mark the `udika-erp-core-features` OpenSpec change as complete, closing all 63 tasks
+
+**Steps:**
+
+- [ ] **15.1** Invoke `/finishing-a-development-branch`. It will ask: Is all work committed? Tests passing? Then it presents options: (a) merge directly to main, (b) open a PR for team review. Choose based on team workflow. If opening a PR, use `gh pr create` with a summary referencing the 14 implementation phases.
+
+- [ ] **15.2** After merge to main, invoke `/deploy-to-vercel`. Confirm all required environment variables are set in the Vercel project settings (see the Environment Variables section below). Verify the production deployment URL resolves and the login page loads.
+
+- [ ] **15.3** Smoke-test the production deployment: login with the seeded ADMIN account, verify the dashboard loads with charts, create a test customer, verify data persists. Check the Vercel deployment logs for any runtime errors.
+
+- [ ] **15.4** Run `/opsx:archive` to archive the `udika-erp-core-features` OpenSpec change. This marks all 63 tasks as done and prevents the change from being re-opened. The archive stores the final state of all spec files alongside the completed implementation.
 
 ---
 
